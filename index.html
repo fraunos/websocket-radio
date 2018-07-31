@@ -12,7 +12,7 @@
   <div id="app">
     <h1>Websocket radio</h1>
     <div v-if="currentTrack" class="player">
-      <video id="player" autoplay muted controls :src="currentTrack.info.url" :poster="currentTrack.info.thumbnail"></video>
+      <video id="player" onloadeddata="this.play(); this.currentTime = (new Date() - app.currentTrack.playTime)/1000;" autoplay controls :src="currentTrack.info.url" :poster="currentTrack.info.thumbnail"></video>
       <div class="">
         <!-- {{currentTime}} - {{currentTrack.info._duration_raw}} -->
       </div>
@@ -47,20 +47,9 @@
       // let mep = new me.MediaElementPlayer('player')
       // console.log(me)
       let self = this
-      setTimeout(function() {
-        self.player = self.$el.children[1].children[0]
-        console.log(self.player);
-        self.player.currentTime = (new Date() - self.currentTrack.playTime)/1000
-        self.player.muted = false
-        self.player.play()
-      }, 1000)
-
       setInterval(function() {
         self.date = new Date()
       }, 1000)
-    },
-    updated() {
-      this.player.muted = false
     },
     computed: {
       currentTrack() {
@@ -78,9 +67,7 @@
       return {
         socket: null,
         playlist: [],
-        player: document.querySelector('#app').children[1].children[0],
         ytLink: 'https://www.youtube.com/watch?v=RhllQAiEQlM',
-        currentTime: player.currentTime,
         date: 0
       }
     },
@@ -99,10 +86,12 @@
   })
 </script>
 <style>
-* {
-  font-size: 1.5vmin;
-}
-  html, body {
+  * {
+    font-size: 1.5vmin;
+  }
+
+  html,
+  body {
     margin: 0;
     display: flex;
     justify-content: center;
@@ -111,49 +100,60 @@
     width: 100vw;
     height: 100vh;
   }
-  div{
+
+  div {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
   }
+
   #app {
     flex-direction: column;
     width: 90vmin;
     height: 100%;
   }
-  .currentTrack{
+
+  .currentTrack {
     font-weight: bolder;
     color: blue;
   }
-  .playedTrack{
+
+  .playedTrack {
     color: #ccc;
   }
-  .player{
+
+  .player {
     flex-direction: column;
   }
-  ul{
+
+  ul {
     padding: 0;
   }
-  video{
+
+  video {
     max-height: 50vh;
     max-width: 100%;
   }
-  .playlist{
+
+  .playlist {
     font-size: 0.8em;
     flex-direction: column;
     justify-content: flex-start;
     height: 30vh;
     overflow-y: auto;
   }
-  .sendBox{
+
+  .sendBox {
     flex-direction: column;
     font-size: 3vmin;
   }
+
   .sendBox div {
     justify-content: space-around;
     align-items: space-around;
   }
+
   .sendBox input {
     font-size: inherit;
     width: 70%;
@@ -161,7 +161,8 @@
     box-sizing: border-box;
     text-align: center;
   }
-  .sendBox button{
+
+  .sendBox button {
     font-size: inherit;
     width: 20%;
     box-sizing: border-box;
