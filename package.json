@@ -1,0 +1,26 @@
+{
+  "name": "websocket-radio",
+  "version": "1.0.0",
+  "description": "internet community radio",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fraunos/websocket-radio.git"
+  },
+  "author": "Michał Wołoszyn",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fraunos/websocket-radio/issues"
+  },
+  "homepage": "https://github.com/fraunos/websocket-radio#readme",
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "koa": "^2.5.2",
+    "koa-socket-2": "^1.0.17",
+    "youtube-dl": "^1.12.2"
+  }
+}
