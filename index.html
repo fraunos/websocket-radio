@@ -30,7 +30,7 @@
       <h2>Publiczna playlista</h2>
       <ul>
         <li v-for="(playlistItem, index) in playlistReversed">
-          <a :class="{currentTrack: currentTrack ? playlistItem.id === currentTrack.id : '', playedTrack: playlistItem.endTime < new Date()}" target="_blank" :href="playlistItem.info.url">[{{new Date(playlistItem.playTime).toLocaleDateString()}}] [{{new Date(playlistItem.playTime).toLocaleTimeString()}} - {{new Date(playlistItem.endTime).toLocaleTimeString()}}] [{{playlistItem.info._duration_hms}}] {{playlistItem.info.fulltitle}} </a>
+          <a :class="{currentTrack: currentTrack ? playlistItem.id === currentTrack.id : '', playedTrack: playlistItem.endTime < new Date()}" target="_blank" :href="playlistItem.info.webpage_url">[{{new Date(playlistItem.playTime).toLocaleDateString()}}] [{{new Date(playlistItem.playTime).toLocaleTimeString()}} - {{new Date(playlistItem.endTime).toLocaleTimeString()}}] [{{playlistItem.info._duration_hms}}] {{playlistItem.info.fulltitle}} </a>
         </li>
       </ul>
     </div>
