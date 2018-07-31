@@ -52,6 +52,7 @@
         console.log(self.player);
         self.player.currentTime = (new Date() - self.currentTrack.playTime)/1000
         self.player.muted = false
+        self.player.play()
       }, 1000)
 
       setInterval(function() {
