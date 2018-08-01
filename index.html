@@ -44,8 +44,7 @@
     mounted() {
       this.socket = io()
       this.socket.on('updatePlaylist', this.updatePlaylist)
-      // let mep = new me.MediaElementPlayer('player')
-      // console.log(me)
+      
       let self = this
       setInterval(function() {
         self.date = new Date()
