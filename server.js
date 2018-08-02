@@ -4,8 +4,6 @@ const IO = require('koa-socket-2')
 const ytdl = require('youtube-dl')
 const fs = require('fs')
 
-const app = module.exports = new Koa()
-
 var playlist = []
 var idCounter = 0
 var timeAvailable = null
