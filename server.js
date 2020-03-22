@@ -15,13 +15,25 @@ async function start() {
 
     let usersCount = 0;
 
-    app.use(async (ctx, next) => {
+    app.use(async ctx => {
+        switch (ctx.originalUrl) {
+            case '/':
+                ctx.type = 'html'
+                ctx.status = 200
+                ctx.body = fs.readFileSync('index.html', {
+                    'encoding': 'utf8'
+                })
+                break;
+            case '/ping':
+                ctx.type = 'html'
+                ctx.status = 200
+                console.log('pong');
+                ctx.body = 'pong'
+                break;
+            default:
+                
+        }
         // await next()
-        ctx.type = 'html'
-        ctx.status = 200 // koa defaults to 404 when it sees that status is unset
-        ctx.body = fs.readFileSync('index.html', {
-            'encoding': 'utf8'
-        })
 
         // return new Promise((resolve, reject) => {
         //   ctx.res.on('close', resolve)

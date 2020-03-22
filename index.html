@@ -69,8 +69,8 @@
       })
 
       setInterval(() => {
-        this.date = new Date()
-      }, 1000)
+        fetch('/ping')
+    }, 5 * 60 * 1000)
     },
     computed: {
       currentTrack() {
