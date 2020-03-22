@@ -12,11 +12,12 @@
   <div id="app">
     <h1>Websocket radio</h1>
     <div v-if="currentTrack && avgTimeOffset" class="player">
-      <video id="player" onloadeddata="this.play(); this.currentTime = (new Date() - app.currentTrack.playTime - app.avgTimeOffset)/1000;" autoplay  :src="currentTrack.info.url" :poster="currentTrack.info.thumbnail"></video>
+      <video id="player" onloadeddata="this.play(); this.currentTime = (new Date() - app.currentTrack.playTime - app.avgTimeOffset)/1000;" autoplay :src="currentTrack.info.url" :poster="currentTrack.info.thumbnail"></video>
     </div>
     <div v-else class="countdown">
         {{10 - timeOffset.length}}
     </div>
+    <button @click="playerFullscreen" type="button" name="button">Fullscreen</button>
     
     <div class="sendBox">
       <div class="">
@@ -104,6 +105,10 @@
       },
       updatePlaylist(data) {
         this.playlist = data
+      },
+      playerFullscreen() {
+          console.log('Fullscreen');
+          document.querySelector('video').requestFullscreen()
       },
     }
   })
