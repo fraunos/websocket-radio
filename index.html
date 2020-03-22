@@ -12,7 +12,7 @@
   <div id="app">
     <h1>Websocket radio</h1>
     <div v-if="currentTrack" class="player">
-      <video id="player" onloadeddata="this.play(); this.currentTime = (new Date() - app.currentTrack.playTime)/1000;" autoplay controls :src="currentTrack.info.url" :poster="currentTrack.info.thumbnail"></video>
+      <video id="player" onloadeddata="this.play(); this.currentTime = (new Date() - app.currentTrack.playTime)/1000;" autoplay muted controls :src="currentTrack.info.url" :poster="currentTrack.info.thumbnail"></video>
       <div class="">
         <!-- {{currentTime}} - {{currentTrack.info._duration_raw}} -->
       </div>
