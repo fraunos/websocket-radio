@@ -11,12 +11,13 @@
 <body>
   <div id="app">
     <h1>Websocket radio</h1>
-    <div v-if="currentTrack" class="player">
-      <video id="player" onloadeddata="this.play(); this.currentTime = (new Date() - app.currentTrack.playTime)/1000;" autoplay muted controls :src="currentTrack.info.url" :poster="currentTrack.info.thumbnail"></video>
-      <div class="">
-        <!-- {{currentTime}} - {{currentTrack.info._duration_raw}} -->
-      </div>
+    <div v-if="currentTrack && avgTimeOffset" class="player">
+      <video id="player" onloadeddata="this.play(); this.currentTime = (new Date() - app.currentTrack.playTime - app.avgTimeOffset)/1000;" autoplay controls :src="currentTrack.info.url" :poster="currentTrack.info.thumbnail"></video>
     </div>
+    <div v-else class="countdown">
+        {{10 - timeOffset.length}}
+    </div>
+    
     <div class="sendBox">
       <div class="">
         Wyślij utwór do publicznej playlisty
@@ -28,6 +29,10 @@
     </div>
     <div class="userCount">
         Połączeni użytkownicy: {{userCount}}
+    </div>
+    <div class="timeOffset">
+        timeOffset: {{currentTimeOffset}}
+        avgTimeOffset: {{avgTimeOffset}}
     </div>
     <div class="playlist">
       <h2>Publiczna playlista</h2>
@@ -51,18 +56,31 @@
           this.userCount = data
       })
       
-      let self = this
-      setInterval(function() {
-        self.date = new Date()
+      this.socket.on('timesync', (data) => {
+          if (this.timeOffset.length === 10) {
+              let sum = this.timeOffset.reduce((p, c) => p + c, 0);
+              let avg = Math.round(sum/10);
+              console.log(avg);
+              this.avgTimeOffset = avg;
+              this.timeOffset = []
+          }
+          this.timeOffset.push(new Date() - new Date(data))
+          
+      })
+
+      setInterval(() => {
+        this.date = new Date()
       }, 1000)
     },
     computed: {
       currentTrack() {
-        this.date
         let track = this.playlist.find((song) => {
-          return new Date().getTime() <= song.endTime
+          return new Date().getTime() - this.avgTimeOffset <= song.endTime
         })
         return track
+      },
+      currentTimeOffset() {
+          return this.timeOffset[this.timeOffset.length - 1]
       },
       playlistReversed() {
         return this.playlist.slice().reverse()
@@ -73,6 +91,8 @@
         socket: null,
         playlist: [],
         userCount: 0,
+        timeOffset: [],
+        avgTimeOffset: 0,
         ytLink: 'https://www.youtube.com/playlist?list=PL0JFc0MOvG-zXhYUCeqZyaJ8sTXeaU86V',
         date: 0
       }
@@ -84,9 +104,6 @@
       },
       updatePlaylist(data) {
         this.playlist = data
-      },
-      getVideoId(videoUrl) {
-        return videoUrl.replace('https://www.youtube.com/watch?v=', '')
       },
     }
   })
@@ -131,6 +148,10 @@
 
   .player {
     flex-direction: column;
+  }
+  .countdown {
+      font-size: 300%;
+      font-weight: bold;
   }
 
   ul {

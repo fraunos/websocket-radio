@@ -59,6 +59,11 @@ async function start() {
             ctx.socket.volatile.emit('updatePlaylist', playlist)
         }
     })
+    
+    setInterval(function () {
+        io.broadcast('timesync', new Date())
+    }, 1000);
+    
     io.on('sendPlaylistItem', async function(ctx, data) {
         console.log(data)
         let info = await getInfo(data)
