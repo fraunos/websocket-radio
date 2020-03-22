@@ -26,6 +26,9 @@
         <button @click="sendPlaylistItem">Wyślij</button>
       </div>
     </div>
+    <div class="userCount">
+        Połączeni użytkownicy: {{userCount}}
+    </div>
     <div class="playlist">
       <h2>Publiczna playlista</h2>
       <ul>
@@ -44,6 +47,9 @@
     mounted() {
       this.socket = io()
       this.socket.on('updatePlaylist', this.updatePlaylist)
+      this.socket.on('updateUserCount', (data) => {
+          this.userCount = data
+      })
       
       let self = this
       setInterval(function() {
@@ -66,6 +72,7 @@
       return {
         socket: null,
         playlist: [],
+        userCount: 0,
         ytLink: 'https://www.youtube.com/playlist?list=PL0JFc0MOvG-zXhYUCeqZyaJ8sTXeaU86V',
         date: 0
       }

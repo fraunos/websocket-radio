@@ -18,9 +18,8 @@
   },
   "homepage": "https://github.com/fraunos/websocket-radio#readme",
   "dependencies": {
-    "fs": "0.0.1-security",
-    "koa": "^2.5.2",
-    "koa-socket-2": "^1.0.17",
+    "koa": "^2.11.0",
+    "koa-socket-2": "^1.2.0",
     "youtube-dl": "^1.13.1"
   }
 }

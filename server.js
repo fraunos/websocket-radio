@@ -13,6 +13,8 @@ async function start() {
   const io = new IO()
   const host = process.env.HOST || '0.0.0.0'
   const port = process.env.PORT || 3000
+  
+  let usersCount = 0;
 
   app.use(async (ctx, next) => {
     // await next()
@@ -26,11 +28,36 @@ async function start() {
     // })
   })
   io.attach(app)
-
-  io.on('connection', (ctx, data) => {
-    console.log('a user connected')
-    ctx.socket.emit('updatePlaylist', playlist)
+  
+  io.use(async (ctx, next)=> {
+      console.log(ctx);
+      await next()
   })
+
+  io.on('connect', ctx => {
+    console.log('a user connected')
+    usersCount++;
+    console.log(usersCount);
+    io.broadcast('updateUserCount', usersCount)
+    
+    if (ctx.emit) {
+        console.log("dupa");
+        ctx.emit('updatePlaylist', playlist)
+        ctx.emit('updateUserCount', usersCount)
+    }
+  })
+  
+  
+    io.on('disconnect', (ctx, data) => {
+      console.log('a user disconnected')
+      usersCount--;
+      io.broadcast('updateUserCount', usersCount)
+      
+      console.log(ctx.socket);
+      if (ctx.socket) {
+          ctx.socket.volatile.emit('updatePlaylist', playlist)
+      }
+    })
   io.on('sendPlaylistItem', async function (ctx, data) {
     console.log(data)
     let info = await getInfo(data)
