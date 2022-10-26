@@ -11,7 +11,7 @@ async function start() {
   const app = new Koa()
   const io = new IO()
   const host = process.env.HOST || '0.0.0.0'
-  const port = process.env.PORT || 3000
+  const port = process.env.PORT || 3002
 
 
   app.use(async ctx => {
