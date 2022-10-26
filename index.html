@@ -6,42 +6,53 @@
   <title>Websocket radio</title>
 </head>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-<script src="https://unpkg.com/socket.io-client@2.1.1/dist/socket.io.js" charset="utf-8"></script>
+<script src="https://unpkg.com/socket.io-client@3/dist/socket.io.js" charset="utf-8"></script>
 
 <body>
   <div id="app">
-    <h1>Websocket radio</h1>
-    <div v-if="currentTrack && avgTimeOffset" class="player">
-      <video id="player" onloadeddata="this.play(); this.currentTime = (new Date() - app.currentTrack.playTime - app.avgTimeOffset)/1000;" autoplay :src="currentTrack.info.url" :poster="currentTrack.info.thumbnail"></video>
+    <div v-if="currentTrack" class="background" :style="{'background-image': 'url(' + currentTrack.thumbnail + ')'}">
     </div>
-    <div v-else class="countdown">
-        {{10 - timeOffset.length}}
-    </div>
-    <button @click="playerFullscreen" type="button" name="button">Fullscreen</button>
-    
-    <div class="sendBox">
-      <div class="">
-        Wyślij utwór do publicznej playlisty
+    <div class="radio">
+      <header>
+        <h1 :style="{color: userColor}">📻 Websocket radio</h1>
+
+        <div class="sendBox">
+          <input v-model="ytLink" placeholder="youtube, soundcloud, vimeo i inne" />
+          <button @click="sendPlaylistItem">Wyślij</button>
+        </div>
+        <div class="status userCount">
+          Online: {{userCount}}
+        </div>
+        <div class="status timeOffset">
+          ping: {{currentTimeOffset}}
+        </div>
+      </header>
+
+      <div v-if="currentTrack" class="player">
+        <audio id="player"
+          onloadeddata="this.play(); this.currentTime = (new Date() - app.currentTrack.playTime - app.avgTimeOffset)/1000;"
+          autoplay :src="currentTrack.url" :poster="currentTrack.thumbnail"></audio>
+        <div class="playerTimer">
+          <div class="playerTimerBar"
+            :style="{'width': ((Date.now() - currentTrack.playTime) / (currentTrack.endTime - currentTrack.playTime))*100 + '%', background: currentTrack.color}">
+          </div>
+          <div class="trackTitle"> {{currentTrack.title}}
+          </div>
+        </div>
       </div>
-      <div class="">
-        <input v-model="ytLink" placeholder="youtube, soundcloud, vimeo i inne" />
-        <button @click="sendPlaylistItem">Wyślij</button>
+      <div v-else class="countdown">
+        {{timesyncCounter - timeOffset.length}}
       </div>
-    </div>
-    <div class="userCount">
-        Połączeni użytkownicy: {{userCount}}
-    </div>
-    <div class="timeOffset">
-        timeOffset: {{currentTimeOffset}}
-        avgTimeOffset: {{avgTimeOffset}}
-    </div>
-    <div class="playlist">
-      <h2>Publiczna playlista</h2>
-      <ul>
-        <li v-for="(playlistItem, index) in playlistReversed">
-          <a :class="{currentTrack: currentTrack ? playlistItem.id === currentTrack.id : '', playedTrack: playlistItem.endTime < new Date()}" target="_blank" :href="playlistItem.info.webpage_url">[{{new Date(playlistItem.playTime).toLocaleDateString()}}] [{{new Date(playlistItem.playTime).toLocaleTimeString()}} - {{new Date(playlistItem.endTime).toLocaleTimeString()}}] [{{playlistItem.info._duration_hms}}] {{playlistItem.info.fulltitle}} </a>
-        </li>
-      </ul>
+
+      <div class="playlist">
+        <a v-for="(playlistItem, index) in playlistReversed"
+          :class="{currentTrack: currentTrack ? playlistItem.id === currentTrack.id : '', playedTrack: playlistItem.endTime < new Date()}"
+          target="_blank" :href="playlistItem.original_url" :style="{'background-color': playlistItem.color}">[{{new
+          Date(playlistItem.playTime).toLocaleDateString()}}] [{{new
+          Date(playlistItem.playTime).toLocaleTimeString()}} - {{new
+          Date(playlistItem.endTime).toLocaleTimeString()}}] [{{playlistItem.duration_string}}]
+          {{playlistItem.title}} </a>
+      </div>
     </div>
   </div>
 </body>
@@ -53,25 +64,25 @@
     mounted() {
       this.socket = io()
       this.socket.on('updatePlaylist', this.updatePlaylist)
-      this.socket.on('updateUserCount', (data) => {
-          this.userCount = data
+      this.socket.on('updateUserColor', (data) => {
+        this.userColor = data
       })
-      
+      this.socket.on('updateUserCount', (data) => {
+        this.userCount = data
+      })
+
       this.socket.on('timesync', (data) => {
-          if (this.timeOffset.length === 10) {
-              let sum = this.timeOffset.reduce((p, c) => p + c, 0);
-              let avg = Math.round(sum/10);
-              console.log(avg);
-              this.avgTimeOffset = avg;
-              this.timeOffset = []
-          }
-          this.timeOffset.push(new Date() - new Date(data))
-          
+        let sum = this.timeOffset.slice(-10).reduce((p, c) => p + c, 0);
+        let avg = Math.round(sum / 10);
+        this.avgTimeOffset = avg;
+        this.timeOffset.push(new Date() - new Date(data))
+
       })
 
       setInterval(() => {
-        fetch('/ping')
-    }, 5 * 60 * 1000)
+        this.currentTime = document.querySelector('audio').currentTime
+      }, 100)
+
     },
     computed: {
       currentTrack() {
@@ -81,7 +92,7 @@
         return track
       },
       currentTimeOffset() {
-          return this.timeOffset[this.timeOffset.length - 1]
+        return this.timeOffset[this.timeOffset.length - 1]
       },
       playlistReversed() {
         return this.playlist.slice().reverse()
@@ -95,7 +106,9 @@
         timeOffset: [],
         avgTimeOffset: 0,
         ytLink: '',
-        date: 0
+        timesyncCounter: 3,
+        date: 0,
+        userColor: ''
       }
     },
     methods: {
@@ -106,92 +119,71 @@
       updatePlaylist(data) {
         this.playlist = data
       },
-      playerFullscreen() {
-          console.log('Fullscreen');
-          document.querySelector('video').requestFullscreen()
-      },
     }
   })
 </script>
 <style>
   * {
-    font-size: 1.5vmin;
+    font-size: 2vmin;
   }
 
   html,
   body {
     margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: monospace;
-    width: 100vw;
-    height: 100vh;
+    padding: 0;
   }
 
-  div {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
 
-  #app {
-    flex-direction: column;
-    width: 90vmin;
-    height: 100%;
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    border-radius: 1em;
+    padding: 1em;
+    backdrop-filter: brightness(0.5);
+
+    gap: 1em;
+
   }
 
   .currentTrack {
-    font-weight: bolder;
-    color: blue;
+    font-weight: bold;
+    color: aqua;
   }
 
   .playedTrack {
     color: #ccc;
   }
 
-  .player {
-    flex-direction: column;
-  }
   .countdown {
-      font-size: 300%;
-      font-weight: bold;
-  }
-
-  ul {
-    padding: 0;
-  }
-
-  video {
-    max-height: 50vh;
-    max-width: 100%;
+    font-size: 300%;
+    font-weight: bold;
   }
 
   .playlist {
-    font-size: 0.8em;
-    flex-direction: column;
-    justify-content: flex-start;
+    border-radius: 1em;
+    padding: 1em;
+    backdrop-filter: brightness(0.5);
     height: 30vh;
     overflow-y: auto;
   }
 
-  .sendBox {
-    flex-direction: column;
-    font-size: 3vmin;
+  .playlist a {
+    display: block;
   }
 
-  .sendBox div {
-    justify-content: space-around;
-    align-items: space-around;
-  }
+  .sendBox {}
 
   .sendBox input {
     font-size: inherit;
     width: 70%;
     height: 2em;
     box-sizing: border-box;
-    text-align: center;
+    border-radius: .75em;
+    outline: none;
+    border: none;
+    padding: .5em;
   }
 
   .sendBox button {
@@ -199,5 +191,76 @@
     width: 20%;
     box-sizing: border-box;
     height: 2em;
+    border-radius: .75em;
+    outline: none;
+    border: none;
+    font-weight: bold;
+  }
+
+  .background {
+    z-index: -1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    filter: blur(5px);
+    background-image: black;
+    background-size: cover;
+    background-position: center;
+    transition: background-image;
+    transition-duration: 1s;
+
+  }
+
+  .radio {
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    font-family: monospace;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .playerTimer {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 3em;
+    background: black;
+    border-radius: 1em;
+  }
+
+  .playerTimerBar {
+    position: absolute;
+    left: 0;
+    align-self: flex-start;
+    height: 100%;
+    border-radius: 1em;
+    border-bottom-right-radius: initial;
+    border-top-right-radius: initial;
+  }
+
+  .trackTitle {
+    font-weight: bold;
+    color: white;
+    position: absolute;
+  }
+
+  .status {
+    font-weight: bold;
+    border-radius: .75em;
+    padding: .5em;
+    background: white;
+  }
+
+  .userCount {
+    color: green;
+  }
+
+  .timeOffset {
+    color: red;
   }
 </style>
