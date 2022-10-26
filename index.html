@@ -21,10 +21,10 @@
           <button @click="sendPlaylistItem">Wyślij</button>
         </div>
         <div class="status userCount">
-          Online: {{userCount}}
+          Online: <span>{{userCount}}</span>
         </div>
         <div class="status timeOffset">
-          ping: {{currentTimeOffset}}
+          ping: <span>{{currentTimeOffset}}</span>
         </div>
       </header>
 
@@ -173,12 +173,13 @@
     display: block;
   }
 
-  .sendBox {}
+  .sendBox {
+    display: contents;
+  }
 
   .sendBox input {
     font-size: inherit;
-    width: 70%;
-    height: 2em;
+    flex-grow: 1;
     box-sizing: border-box;
     border-radius: .75em;
     outline: none;
@@ -188,10 +189,9 @@
 
   .sendBox button {
     font-size: inherit;
-    width: 20%;
     box-sizing: border-box;
-    height: 2em;
     border-radius: .75em;
+    padding: .5em;
     outline: none;
     border: none;
     font-weight: bold;
@@ -258,9 +258,19 @@
 
   .userCount {
     color: green;
+    min-width: 7em;
+  }
+
+  .userCount span {
+    float: right;
   }
 
   .timeOffset {
     color: red;
+    min-width: 7em;
+  }
+
+  .timeOffset span {
+    float: right;
   }
 </style>
