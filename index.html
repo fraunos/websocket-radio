@@ -30,27 +30,22 @@
 
       <div v-if="currentTrack" class="player">
         <audio id="player"
-          onloadeddata="this.play(); this.currentTime = (new Date() - app.currentTrack.playTime - app.avgTimeOffset)/1000;"
-          autoplay :src="currentTrack.url" :poster="currentTrack.thumbnail"></audio>
+          onloadeddata="this.play(); this.currentTime = (Date.now() - app.currentTrack.timestamp)/1000;" autoplay
+          :src="currentTrack.url" :poster="currentTrack.thumbnail"></audio>
         <div class="playerTimer">
           <div class="playerTimerBar"
-            :style="{'width': ((Date.now() - currentTrack.playTime) / (currentTrack.endTime - currentTrack.playTime))*100 + '%', background: currentTrack.color}">
+            :style="{'width': ((Date.now() - currentTrack.timestamp) / currentTrack.duration)*100 + '%', background: currentTrack.color}">
           </div>
           <div class="trackTitle"> {{currentTrack.title}}
           </div>
         </div>
       </div>
-      <div v-else class="countdown">
-        {{timesyncCounter - timeOffset.length}}
-      </div>
 
       <div class="playlist">
         <a v-for="(playlistItem, index) in playlistReversed"
           :class="{currentTrack: currentTrack ? playlistItem.id === currentTrack.id : '', playedTrack: playlistItem.endTime < new Date()}"
-          target="_blank" :href="playlistItem.original_url" :style="{'background-color': playlistItem.color}">[{{new
-          Date(playlistItem.playTime).toLocaleDateString()}}] [{{new
-          Date(playlistItem.playTime).toLocaleTimeString()}} - {{new
-          Date(playlistItem.endTime).toLocaleTimeString()}}] [{{playlistItem.duration_string}}]
+          target="_blank" :href="playlistItem.original_url" :style="{'background-color': playlistItem.color}">
+          [{{playlistItem.duration_string}}]
           {{playlistItem.title}} </a>
       </div>
     </div>
@@ -70,6 +65,10 @@
       this.socket.on('updateUserCount', (data) => {
         this.userCount = data
       })
+      this.socket.on('updateCurrentTrack', (data) => {
+        console.log(data)
+        this.currentTrack = data
+      })
 
       this.socket.on('timesync', (data) => {
         let sum = this.timeOffset.slice(-10).reduce((p, c) => p + c, 0);
@@ -79,18 +78,12 @@
 
       })
 
-      setInterval(() => {
-        this.currentTime = document.querySelector('audio').currentTime
-      }, 100)
+      // setInterval(() => {
+      //   this.currentTime = document.querySelector('audio').currentTime
+      // }, 100)
 
     },
     computed: {
-      currentTrack() {
-        let track = this.playlist.find((song) => {
-          return new Date().getTime() - this.avgTimeOffset <= song.endTime
-        })
-        return track
-      },
       currentTimeOffset() {
         return this.timeOffset[this.timeOffset.length - 1]
       },
@@ -108,7 +101,8 @@
         ytLink: '',
         timesyncCounter: 3,
         date: 0,
-        userColor: ''
+        userColor: '',
+        currentTrack: {}
       }
     },
     methods: {
@@ -231,6 +225,7 @@
     height: 3em;
     background: black;
     border-radius: 1em;
+    overflow: hidden;
   }
 
   .playerTimerBar {
