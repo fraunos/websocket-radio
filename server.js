@@ -28,11 +28,16 @@ app.use(async ctx => {
 io.attach(app)
 
 io.on('connect', ctx => {
-  console.log(`a user connected ${ctx.id}`)
-  const user = { id: ctx.id, connected: true, playlist: [], color: randomColor() }
+  console.log(`a user connected ${ctx.handshake.query.username}`)
+  const user = {
+    id: ctx.id,
+    username: ctx.handshake.query.username,
+    connected: true,
+    playlist: [],
+    color: randomColor()
+  }
   users.push(user)
   io.broadcast('updateUserCount', getConnectedUsers().length)
-  console.log(users)
 
   console.log('currentTrack')
   console.log(currentTrack)
@@ -47,7 +52,9 @@ io.on('connect', ctx => {
 
 
 io.on('disconnect', (ctx, data) => {
-  console.log(`a user disconnected ${ctx.socket.id}`)
+  console.log(ctx)
+  console.log(data)
+  console.log(`a user disconnected ${getUser(ctx.socket.id).username}`)
   users.find(i => i.id === ctx.socket.id).connected = false;
   io.broadcast('updateUserCount', getConnectedUsers().length)
 
@@ -133,7 +140,8 @@ function randomColor() {
 function updateCurrentTrack() {
   if (currentTrack?.played) {
     console.log('setting current track as played')
-    io.broadcast('updateCurrentTrack', {})
+    currentTrack = {}
+    io.broadcast('updateCurrentTrack', currentTrack)
   }
   let track = playlist.find(i => !i.played)
   if (!track) return
