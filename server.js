@@ -37,7 +37,7 @@ io.on('connect', ctx => {
     color: randomColor()
   }
   users.push(user)
-  io.broadcast('updateUserCount', getConnectedUsers().length)
+  io.broadcast('updateUsers', getConnectedUsers().map(i => i.username))
 
   console.log('currentTrack')
   console.log(currentTrack)
@@ -45,7 +45,7 @@ io.on('connect', ctx => {
   if (ctx.emit) {
     ctx.emit('updatePlaylist', playlist)
     ctx.emit('updateCurrentTrack', currentTrack)
-    ctx.emit('updateUserCount', getConnectedUsers().length)
+    ctx.emit('updateUsers', getConnectedUsers().map(i => i.username))
     ctx.emit('updateUserColor', user.color)
   }
 })
@@ -56,8 +56,7 @@ io.on('disconnect', (ctx, data) => {
   console.log(data)
   console.log(`a user disconnected ${getUser(ctx.socket.id).username}`)
   users.find(i => i.id === ctx.socket.id).connected = false;
-  io.broadcast('updateUserCount', getConnectedUsers().length)
-
+  io.broadcast('updateUsers', getConnectedUsers().map(i => i.username))
 })
 
 setInterval(() => {

@@ -20,8 +20,8 @@
           <input v-model="ytLink" placeholder="youtube, soundcloud, vimeo i inne" />
           <button @click="sendPlaylistItem">Wyślij</button>
         </div>
-        <div class="status userCount">
-          Online: <span>{{userCount}}</span>
+        <div class="status userCount" :title="users">
+          Online: <span>{{users.length}}</span>
         </div>
         <div class="status timeOffset">
           ping: <span>{{currentTimeOffset}}</span>
@@ -76,8 +76,8 @@
       this.socket.on('updateUserColor', (data) => {
         this.userColor = data
       })
-      this.socket.on('updateUserCount', (data) => {
-        this.userCount = data
+      this.socket.on('updateUsers', (data) => {
+        this.users = data
       })
       this.socket.on('updateCurrentTrack', (data) => {
         console.log(data)
@@ -109,7 +109,7 @@
       return {
         socket: null,
         playlist: [],
-        userCount: 0,
+        users: [],
         timeOffset: [],
         avgTimeOffset: 0,
         ytLink: '',
