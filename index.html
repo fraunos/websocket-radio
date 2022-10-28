@@ -10,9 +10,9 @@
 
 <body>
   <div id="app">
-    <div v-if="currentTrack" class="background" :style="{'background-image': 'url(' + currentTrack.thumbnail + ')'}">
-    </div>
-    <div class="radio">
+    <div class="radio" v-if="socket">
+      <div v-if="currentTrack" class="background" :style="{'background-image': 'url(' + currentTrack.thumbnail + ')'}">
+      </div>
       <header>
         <h1 :style="{color: userColor}">📻 {{username ?? 'Websocket radio'}}</h1>
 
@@ -49,6 +49,10 @@
           {{playlistItem.title}} </a>
       </div>
     </div>
+    <div v-else>
+      <input v-model="username" placeholder="username" />
+      <button @click="initSocket">Start</button>
+    </div>
   </div>
 </body>
 
@@ -59,43 +63,7 @@
     mounted() {
       if (localStorage.getItem('username')) {
         this.username = localStorage.getItem('username')
-      } else {
-        this.username = prompt("Podaj swój nick")
-        localStorage.setItem('username', this.username)
       }
-      console.log(this.username)
-
-      this.socket = io({
-        query: {
-          username: this.username
-
-        }
-      })
-      console.log('hm')
-      this.socket.on('updatePlaylist', this.updatePlaylist)
-      this.socket.on('updateUserColor', (data) => {
-        this.userColor = data
-      })
-      this.socket.on('updateUsers', (data) => {
-        this.users = data
-      })
-      this.socket.on('updateCurrentTrack', (data) => {
-        console.log(data)
-        this.currentTrack = data
-      })
-
-      this.socket.on('timesync', (data) => {
-        let sum = this.timeOffset.slice(-10).reduce((p, c) => p + c, 0);
-        let avg = Math.round(sum / 10);
-        this.avgTimeOffset = avg;
-        this.timeOffset.push(new Date() - new Date(data))
-
-      })
-
-      // setInterval(() => {
-      //   this.currentTime = document.querySelector('audio').currentTime
-      // }, 100)
-
     },
     computed: {
       currentTimeOffset() {
@@ -128,6 +96,35 @@
       updatePlaylist(data) {
         this.playlist = data
       },
+      initSocket() {
+        localStorage.setItem('username', this.username)
+        this.socket = io({
+          query: {
+            username: this.username
+
+          }
+        })
+        this.socket.on('updatePlaylist', this.updatePlaylist)
+        this.socket.on('updateUserColor', (data) => {
+          this.userColor = data
+        })
+        this.socket.on('updateUsers', (data) => {
+          this.users = data
+        })
+        this.socket.on('updateCurrentTrack', (data) => {
+          console.log(data)
+          this.currentTrack = data
+        })
+
+        this.socket.on('timesync', (data) => {
+          let sum = this.timeOffset.slice(-10).reduce((p, c) => p + c, 0);
+          let avg = Math.round(sum / 10);
+          this.avgTimeOffset = avg;
+          this.timeOffset.push(new Date() - new Date(data))
+
+        })
+
+      }
     }
   })
 </script>
