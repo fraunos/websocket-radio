@@ -14,7 +14,7 @@
     </div>
     <div class="radio">
       <header>
-        <h1 :style="{color: userColor}">📻 Websocket radio</h1>
+        <h1 :style="{color: userColor}">📻 {{username ?? 'Websocket radio'}}</h1>
 
         <div class="sendBox">
           <input v-model="ytLink" placeholder="youtube, soundcloud, vimeo i inne" />
@@ -57,6 +57,13 @@
   var app = new Vue({
     el: '#app',
     mounted() {
+      if (localStorage.getItem('username')) {
+        this.username = localStorage.getItem('username')
+      } else {
+        this.username = prompt("Podaj swój nick")
+        localStorage.setItem('username', this.username)
+      }
+
       this.socket = io()
       this.socket.on('updatePlaylist', this.updatePlaylist)
       this.socket.on('updateUserColor', (data) => {
@@ -102,7 +109,8 @@
         timesyncCounter: 3,
         date: 0,
         userColor: '',
-        currentTrack: {}
+        currentTrack: {},
+        username: ''
       }
     },
     methods: {

@@ -34,6 +34,9 @@ io.on('connect', ctx => {
   io.broadcast('updateUserCount', getConnectedUsers().length)
   console.log(users)
 
+  console.log('currentTrack')
+  console.log(currentTrack)
+
   if (ctx.emit) {
     ctx.emit('updatePlaylist', playlist)
     ctx.emit('updateCurrentTrack', currentTrack)
@@ -69,7 +72,6 @@ io.on('sendPlaylistItem', async function(ctx, data) {
     ]
   })
 
-  console.log(getUser(ctx.socket.id))
   if (info.length > 1) {
     for (let trackInfo of info) {
       getUser(ctx.socket.id).playlist.push(createPlaylistItem(ctx.socket.id, trackInfo))
@@ -77,9 +79,10 @@ io.on('sendPlaylistItem', async function(ctx, data) {
   } else {
     getUser(ctx.socket.id).playlist.push(createPlaylistItem(ctx.socket.id, info))
   }
-  console.log(users)
+  console.log(getUser(ctx.socket.id).playlist.length)
+  console.log(getUser(ctx.socket.id).playlist)
   playlist = shufflePlaylist()
-  if (!currentTrack) updateCurrentTrack()
+  if (!currentTrack || currentTrack.played) updateCurrentTrack()
   io.broadcast('updatePlaylist', playlist)
 
 })
@@ -99,6 +102,7 @@ function createPlaylistItem(user, info) {
     thumbnail,
     duration: duration * 1000,
     duration_string,
+    played: false,
     id: idCounter++
   }
 }
@@ -121,14 +125,14 @@ function shufflePlaylist() {
       }
     }
   }
-  return playlist
+  return playlist.sort((a, b) => b.played - a.played)
 }
 function randomColor() {
   return "#" + (Math.floor(Math.random() * 16777215).toString(16));
 }
 function updateCurrentTrack() {
-  let now = Date.now()
-  if (currentTrack && now - (currentTrack?.timestamp + currentTrack?.duration) > 0) {
+  if (currentTrack?.played) {
+    console.log('setting current track as played')
     io.broadcast('updateCurrentTrack', {})
   }
   let track = playlist.find(i => !i.played)
@@ -142,7 +146,6 @@ function updateCurrentTrack() {
   console.log(`Playing next song in ${track.duration + 1000} miliseconds`)
   setTimeout(() => {
     currentTrack.played = true
-    playlist = shufflePlaylist()
     updateCurrentTrack()
 
   }, track.duration + 1000)
